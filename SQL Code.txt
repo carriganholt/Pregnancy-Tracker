@@ -1,0 +1,127 @@
+#CREATE SCHEMA CODE
+Create table patient (PatientID int primary key, Name varchar(50), CurrPreg boolean);
+
+Create table pregnancy (PregnancyID int primary key, DueDate Date, Type boolean, DoctorID int,
+	PatientID int, foreign key (PatientID) references patient(PatientID));
+
+Create table past_pregnancy (PregnancyID int primary key, DeliveryDate Date,
+	PatientID int, foreign key (PatientID) references patient(PatientID));
+
+Create table current_pregnancy (PregnancyID int primary key, DueDate Date,
+	PatientID int, foreign key (PatientID) references patient(PatientID));
+
+Create table doctor (DoctorID int primary key, Name varchar (50), Age int);
+
+Create table appointment (AppID int primary key, Date Date, Time Time, Summary Text, 
+	DoctorID int, foreign key (DoctorID) references doctor(DoctorID),
+	PatientID int, foreign key (PatientID) references patient(PatientID));
+
+Create table medication (MedID int primary key, MedName varchar(50), 
+	DoctorID int, foreign key (DoctorID) references doctor(DoctorID));
+
+Create table prescription (
+	PatientID int, foreign key (PatientID) references patient(PatientID),
+	MedID int, Primary Key (PatientID, MedID), foreign key (MedID) references medication(MedID));
+
+INSERT INTO doctor VALUES(2010, "Colleen Thornton", 25);
+INSERT INTO doctor VALUES(2021, "Daryl Ingram", 48);
+INSERT INTO doctor VALUES(2018, "Bradford James", 52);
+
+INSERT INTO patient VALUES(1011, "Joan Rogers", true);
+INSERT INTO patient VALUES(1022, "Susie Sandoval", true);
+INSERT INTO patient VALUES(1033, "Essie Chambers", true);
+INSERT INTO patient VALUES(1044, "Troy Medina", true);
+INSERT INTO patient VALUES(1055, "Carroll Henderson", false);
+INSERT INTO patient VALUES(1066, "Jodi Wheeler", false);
+
+INSERT INTO pregnancy VALUES(3012, "2020-01-12", true, 2021, 1011);
+INSERT INTO pregnancy VALUES(3042, "2020-05-21", true, 2010, 1022);
+INSERT INTO pregnancy VALUES(3051, "2020-09-02", true, 2010, 1033);
+INSERT INTO pregnancy VALUES(3021, "2019-12-31", true, 2018, 1044);
+INSERT INTO pregnancy VALUES(3024, "2019-10-14", false, 2021, 1055);
+INSERT INTO pregnancy VALUES(3035, "2019-01-12", false, 2021, 1055);
+INSERT INTO pregnancy VALUES(3079, "2019-07-25", false, 2010, 1066);
+INSERT INTO pregnancy VALUES(3033, "2019-11-14", false, 2018, 1011);
+INSERT INTO pregnancy VALUES(3018, "2018-11-29", false, 2018, 1033);
+
+INSERT INTO current_pregnancy VALUES(3012, "2020-01-12", 1011);
+INSERT INTO current_pregnancy VALUES(3042, "2020-05-21", 1022);
+INSERT INTO current_pregnancy VALUES(3051, "2020-09-02", 1033);
+INSERT INTO current_pregnancy VALUES(3021, "2019-12-31", 1044);
+
+INSERT INTO past_pregnancy VALUES(3024, "2019-10-14", 1055);
+INSERT INTO past_pregnancy VALUES(3035, "2019-01-12", 1055);
+INSERT INTO past_pregnancy VALUES(3079, "2019-07-25", 1066);
+INSERT INTO past_pregnancy VALUES(3033, "2019-11-14", 1011);
+INSERT INTO past_pregnancy VALUES(3018, "2018-11-29", 1033);
+
+INSERT INTO medication VALUES(4021, "Petezol", 2010);
+INSERT INTO medication VALUES(4044, "Marizokitoal", 2021);
+INSERT INTO medication VALUES(4089, "Antibalian", 2018);
+
+#Appointments for Joan Rogers, due January
+INSERT INTO appointment VALUES(5123, "2019-11-20", "12:30:00", "Bi-Monthly check-in", 2021, 1011);
+INSERT INTO appointment VALUES(5111, "2019-11-01", "16:00:00", "Discussion of medications", 2021, 1011);
+#Appointments for Susie Sandoval, due May
+INSERT INTO appointment VALUES(5099, "2019-11-04", "15:15:00", "Bi-Monthly check-in", 2010, 1022);
+INSERT INTO appointment VALUES(5144, "2020-01-04", "14:15:00", "Bi-Monthly check-in", 2010, 1022);
+INSERT INTO appointment VALUES(5647, "2020-03-04", "16:15:00", "Bi-Monthly check-in", 2010, 1022);
+INSERT INTO appointment VALUES(5245, "2020-05-04", "14:15:00", "Bi-Monthly check-in", 2010, 1022);
+#Appointments for Essie Chambers due September
+INSERT INTO appointment VALUES(5256, "2019-12-13", "10:00:00", "Bi-Monthly check-in", 2010, 1033);
+INSERT INTO appointment VALUES(5555, "2020-02-21", "12:00:00", "Bi-Monthly check-in", 2010, 1033);
+INSERT INTO appointment VALUES(5337, "2020-04-17", "09:30:00", "Bi-Monthly check-in", 2010, 1033);
+INSERT INTO appointment VALUES(5889, "2020-01-03", "10:00:00", "Discussion of medications", 2010, 1033);
+INSERT INTO appointment VALUES(5024, "2020-04-17", "10:00:00", "Arrangment of future appointments and discussion of new doctor", 2018, 1033);
+#Appointments for Troy Medina, due December
+INSERT INTO appointment VALUES(5599, "2020-01-07", "17:30:00", "TBD", 2018, 1044);
+#Appointments for Carroll Henderson, gave birth last October
+INSERT INTO appointment VALUES(5009, "2019-11-14", "12:30:00", "Post-Pardem Follow Up", 2021, 1055);
+#Appointments for Jodi Wheeler, gave birth last July
+#N/A
+
+#Fails for unknown reasons???
+INSERT INTO prescription VALUES(1011, 4021);
+INSERT INTO prescription VALUES(1022, 4044);
+INSERT INTO prescription VALUES(1033, 4021);
+INSERT INTO prescription VALUES(1033, 4089);
+INSERT INTO prescription VALUES(1044, 4044);
+
+QUERIES
+#See all patients(names and ids)
+	SELECT PatientID, Name FROM patient;
+#See all patients currently pregnant
+	SELECT p.ID, p.Name, cp.DueDate FROM patient p, current_pregnancy cp 
+	WHERE p.PatientID = cp.PatientID;
+#See all patients post pardem
+	SELECT p.ID, p.Name, pp.DeliveryDate FROM patient p, past_pregnancy pp 
+	WHERE p.PatientID = pp.PatientID;
+#Search patient by name, display pregnancy statuses
+	SELECT * FROM patient WHERE Name = string;
+#Search doctor by name, display upcoming appointments
+	SELECT a.Date, a.Time, a.PatientID FROM appointment a, doctor d WHERE d.Name = string;
+#Search patient by name, display upcoming appointments
+	SELECT a.Date, a.Time, a.DoctorID FROM appointment a, patient p WHERE p.Name = string;
+#Display patient record by ID (pregnancies, assigned doctor, medications, all appointments)
+#Search doctor, display all patients assigned
+#Updating records
+#Adding records
+#Deleting records
+
+PAGES
+#View patient records
+	#Search by name/ID
+		#Diplay pregnancy status
+		#Show upcoming appointments
+		#Show full record
+	#See all patients
+		#Currently pregnant
+		#post pardem
+#View doctor records
+	#Search by name/ID
+		#show upcoming appointments
+		#show patients assigned
+#Admin page
+	#Updating Records
+	#Adding Records
+	#Deleting Records
